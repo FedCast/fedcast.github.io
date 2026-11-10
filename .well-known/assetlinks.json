@@ -1,0 +1,11 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.tote.app",
+    "sha256_cert_fingerprints": [
+      "FA:16:29:99:7E:C5:5A:92:67:F1:DB:00:B6:C7:D5:EC:7E:9A:0E:9C:5D:82:FC:7F:C2:8B:AB:C0:9D:F1:9E:0B",
+      "C8:D5:B6:C8:4D:67:27:3C:26:06:4B:CA:1A:E9:04:8E:9A:79:53:DC:3A:62:FB:E0:57:99:A2:B4:85:42:32:EE"
+    ]
+  }
+}]

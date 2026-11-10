@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#66A550">
+<title>A shared list | Grocery time</title>
+<style>
+:root{--bg:#F5F0E0;--card:#FBF8EF;--ink:#353E43;--mute:#5A646A;--line:#CFCAB8;--green:#66A550;--on:#262D31;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#353E43;--card:#40484C;--ink:#F1E9D2;--mute:#C4C0AE;--line:#5B6469;color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.45 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--green);color:var(--on);padding:20px 16px;font-weight:700;font-size:18px}
+main{max-width:480px;margin:0 auto;padding:24px 16px 40px;display:grid;gap:16px}
+h1{margin:0;font-size:24px;line-height:1.2;overflow-wrap:anywhere}
+p{margin:0}
+.mute{color:var(--mute)}
+.btn{display:block;text-align:center;text-decoration:none;font-weight:700;font-size:16px;background:var(--green);color:var(--on);border-radius:8px;padding:14px 18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+ul{margin:8px 0 0;padding:0;list-style:none}
+li{padding:8px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px}
+li:first-child{border-top:0}
+li.done{color:var(--mute);text-decoration:line-through}
+li span:last-child{color:var(--mute);white-space:nowrap}
+</style>
+</head>
+<body>
+<header>Grocery time</header>
+<main>
+  <h1 id="title">A shared list</h1>
+  <p id="sub" class="mute">Someone shared a grocery list with you.</p>
+  <a id="open" class="btn" href="#">Open in Grocery time</a>
+  <p id="noapp" class="mute">Don't have the app? Ask the person who sent you this link how to get it. You can still read the list below.</p>
+  <section class="card" id="items" hidden>
+    <strong>Items</strong>
+    <ul id="list"></ul>
+  </section>
+  <p id="bad" hidden>This link looks incomplete. Ask for it to be sent again.</p>
+</main>
+<script>
+(async () => {
+  // The list lives in the #fragment, which is never sent to this server.
+  const m = location.hash.match(/^#1\.([A-Za-z0-9_-]+)$/);
+  const open = document.getElementById('open');
+  if (!m) { open.hidden = true; document.getElementById('noapp').hidden = true; document.getElementById('bad').hidden = false; return; }
+  open.href = 'intent://import/1.' + m[1] + '#Intent;scheme=grocerytime;package=com.tote.app;end';
+  try {
+    const bin = Uint8Array.from(atob(m[1].replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+    const txt = await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+    const o = JSON.parse(txt);
+    const items = Array.isArray(o.i) ? o.i : [];
+    document.getElementById('title').textContent = String(o.n || 'A shared list');
+    document.title = String(o.n || 'A shared list') + ' | Grocery time';
+    document.getElementById('sub').textContent = items.length + ' item' + (items.length === 1 ? '' : 's');
+    const ul = document.getElementById('list');
+    items.forEach(i => {
+      const li = document.createElement('li');
+      if (i[3]) li.className = 'done';
+      const a = document.createElement('span'); a.textContent = String(i[0] || '');
+      const b = document.createElement('span'); b.textContent = String(i[1] || '');
+      li.append(a, b); ul.append(li);
+    });
+    if (items.length) document.getElementById('items').hidden = false;
+  } catch (e) { /* older browser: the Open button still works */ }
+})();
+</script>
+</body>
+</html>
